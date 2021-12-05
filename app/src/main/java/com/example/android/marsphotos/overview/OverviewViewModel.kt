@@ -1,0 +1,57 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.example.android.marsphotos.overview
+
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.android.marsphotos.network.MarsApi
+import kotlinx.coroutines.launch
+
+/**
+ * Kelas OverviewFragment yang dilampirkan ViewModel
+ */
+class OverviewViewModel : ViewModel() {
+
+    // MutableLiveData internal yang menyimpan status permintaan terbaru
+    private val _status = MutableLiveData<String>()
+
+    // LiveData external tidak dapat diubah untuk status permintaan
+    val status: LiveData<String> = _status
+    /**
+     * Memanggil getMarsPhotos sehingga dapat segera menampilkan status
+     */
+    init {
+        getMarsPhotos()
+    }
+    /**
+     * Mendapatkan informasi foto Mars dari layanan Mars API Retrofit dan memperbaruinya
+     * Memberikan penangan apabila tidak tersambung pada internet
+     */
+    private fun getMarsPhotos() {
+        viewModelScope.launch {
+            try {
+                val listResult = MarsApi.retrofitService.getPhotos()
+                _status.value = "Success: ${listResult.size} Mars photos retrieved"
+            } catch (e: Exception) {
+                _status.value = "Failure: ${e.message}"
+            }
+        }
+    }
+}
+
